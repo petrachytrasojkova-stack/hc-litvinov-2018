@@ -14,9 +14,7 @@ import {
 import { db } from './firebase.js';
 import { DEFAULT_PLANS, DEFAULT_EXERCISES } from './utils.js';
 
-/* ===========================================================
-   HRÁČI
-=========================================================== */
+/* HRÁČI */
 
 export async function getPlayers() {
   const s = await getDocs(
@@ -43,9 +41,7 @@ export async function deletePlayer(id) {
   await deleteDoc(doc(db, 'players', id));
 }
 
-/* ===========================================================
-   PLÁNY
-=========================================================== */
+/* PLÁNY */
 
 export async function getPlans() {
   const s = await getDocs(collection(db, 'plans'));
@@ -72,9 +68,7 @@ export async function deletePlan(id) {
   await deleteDoc(doc(db, 'plans', id));
 }
 
-/* ===========================================================
-   CVIČENÍ
-=========================================================== */
+/* CVIČENÍ */
 
 export async function getExercises() {
   const s = await getDocs(collection(db, 'exercises'));
@@ -101,9 +95,7 @@ export async function deleteExercise(key) {
   await deleteDoc(doc(db, 'exercises', key));
 }
 
-/* ===========================================================
-   ZÁPISY
-=========================================================== */
+/* ZÁPISY */
 
 export async function getEntries() {
   const s = await getDocs(collection(db, 'entries'));
@@ -141,9 +133,11 @@ export async function saveEntry(entry) {
   );
 }
 
-/* ===========================================================
-   NASTAVENÍ SPRÁVCE
-=========================================================== */
+export async function deleteEntry(entryId) {
+  await deleteDoc(doc(db, 'entries', entryId));
+}
+
+/* NASTAVENÍ SPRÁVCE */
 
 export async function getAdminSettings() {
   const snap = await getDoc(doc(db, 'settings', 'admin'));
@@ -166,12 +160,9 @@ export async function saveAdminSettings(data) {
   );
 }
 
-/* ===========================================================
-   OBNOVENÍ VÝCHOZÍCH DAT
-=========================================================== */
+/* OBNOVENÍ VÝCHOZÍCH DAT */
 
 export async function resetDefaults() {
-
   for (const p of DEFAULT_PLANS) {
     await setDoc(doc(db, 'plans', p.id), p);
   }
@@ -179,5 +170,4 @@ export async function resetDefaults() {
   for (const e of DEFAULT_EXERCISES) {
     await setDoc(doc(db, 'exercises', e.key), e);
   }
-
 }
