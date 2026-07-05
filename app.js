@@ -1,47 +1,45 @@
-import { renderPlayersSection } from './players.js';
-import { renderTrainingsSection } from './trainings.js';
-import { renderAttendanceSection } from './attendance.js';
-import { renderSmsSection } from './sms.js';
+import { renderPlayers } from './players.js';
+import { renderTrainings } from './trainings.js';
+import { renderAttendance } from './attendance.js';
+import { renderSms } from './sms.js';
 
 export function renderApp() {
-  const app = document.querySelector('#app');
+  const app = document.getElementById('app');
 
   app.innerHTML = `
-    <main class="layout">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">HC Litvínov 2018</p>
-          <h1>Tréninky a docházka</h1>
-          <p class="subtitle">Produkční základ aplikace pro správu hráčů, tréninků, docházky a SMS.</p>
-        </div>
-      </header>
+    <header class="topbar">
+      <div>
+        <h1>Tréninky HC Litvínov</h1>
+        <p>Produkční základ aplikace</p>
+      </div>
+    </header>
 
-      <nav class="tabs" aria-label="Hlavní moduly">
-        <button class="tab is-active" data-tab="players">Hráči</button>
-        <button class="tab" data-tab="trainings">Tréninky</button>
-        <button class="tab" data-tab="attendance">Docházka</button>
-        <button class="tab" data-tab="sms">SMS</button>
-      </nav>
+    <nav class="tabs">
+      <button class="tab active" data-tab="players">Hráči</button>
+      <button class="tab" data-tab="trainings">Tréninky</button>
+      <button class="tab" data-tab="attendance">Docházka</button>
+      <button class="tab" data-tab="sms">SMS</button>
+    </nav>
 
-      <section id="content" class="card"></section>
-    </main>
+    <main id="content" class="content"></main>
   `;
 
-  const content = document.querySelector('#content');
-  const tabs = document.querySelectorAll('.tab');
+  const content = document.getElementById('content');
 
-  const renderTab = (tabName) => {
-    tabs.forEach((tab) => tab.classList.toggle('is-active', tab.dataset.tab === tabName));
+  function openTab(tab) {
+    document.querySelectorAll('.tab').forEach(button => {
+      button.classList.toggle('active', button.dataset.tab === tab);
+    });
 
-    if (tabName === 'players') renderPlayersSection(content);
-    if (tabName === 'trainings') renderTrainingsSection(content);
-    if (tabName === 'attendance') renderAttendanceSection(content);
-    if (tabName === 'sms') renderSmsSection(content);
-  };
+    if (tab === 'players') renderPlayers(content);
+    if (tab === 'trainings') renderTrainings(content);
+    if (tab === 'attendance') renderAttendance(content);
+    if (tab === 'sms') renderSms(content);
+  }
 
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => renderTab(tab.dataset.tab));
+  document.querySelectorAll('.tab').forEach(button => {
+    button.addEventListener('click', () => openTab(button.dataset.tab));
   });
 
-  renderTab('players');
+  openTab('players');
 }
