@@ -3,6 +3,10 @@ import { activePlan, activeExercises, show, logout } from './auth.js';
 import { saveEntry, getEntriesForUserPlan } from './store.js';
 import { dateList, esc, formatDate } from './utils.js';
 
+function isPlank(ex) {
+  return (ex.name || '').toLowerCase().includes('plank');
+}
+
 export async function renderEntry() {
   if (!state.currentUser) {
     show('login');
@@ -31,14 +35,10 @@ export async function renderEntry() {
 
     ${availableDates.length ? `
       <div class="card" style="background:#f9fafb">
-        <div class="row">
-          <div>
-            <label>Datum zápisu</label>
-            <select id="dateSelect">
-              ${availableDates.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('')}
-            </select>
-          </div>
-        </div>
+        <label>Datum zápisu</label>
+        <select id="dateSelect">
+          ${availableDates.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('')}
+        </select>
       </div>
 
       <h3>Předepsaná cvičení</h3>
@@ -50,10 +50,7 @@ export async function renderEntry() {
         <textarea id="other" rows="3" style="width:100%" placeholder="Např. běh 20 min, kolo, brusle..."></textarea>
       </details>
 
-      <p>
-        <button id="saveEntryBtn">💾 Uložit zápis</button>
-      </p>
-
+      <p><button id="saveEntryBtn">💾 Uložit zápis</button></p>
       <div id="saved" class="success"></div>
     ` : `
       <div class="card" style="background:#f9fafb">
@@ -82,7 +79,7 @@ function renderExercises(exercises) {
   }
 
   exercises.forEach(ex => {
-    const isTime = (ex.unit || '').toLowerCase().includes('čas') || (ex.unit || '').toLowerCase().includes('min');
+    const plank = isPlank(ex);
 
     const div = document.createElement('div');
     div.className = 'exercise';
@@ -90,11 +87,11 @@ function renderExercises(exercises) {
       <h3 style="margin-top:0">🏒 ${esc(ex.name || '')}</h3>
       <p class="muted">Plán: <b>${esc(ex.target || '—')}</b> ${esc(ex.unit || '')}</p>
 
-      <label>${isTime ? 'Odcvičeno' : 'Splněno / počet'}</label>
+      <label>${plank ? 'Čas ve formátu mm:ss' : 'Splněný počet'}</label>
       <input
         style="width:100%;margin-top:2px"
         id="ex_${esc(ex.key)}"
-        placeholder="${isTime ? 'např. 15 min nebo 02:30' : 'např. 10 / 20 / 3×10'}"
+        ${plank ? 'inputmode="numeric" placeholder="např. 02:30" pattern="^[0-9]{1,2}:[0-5][0-9]$"' : 'type="number" min="0" step="1" placeholder="celé číslo"'}
       >
     `;
 
@@ -104,10 +101,27 @@ function renderExercises(exercises) {
 
 async function doSave() {
   const plan = activePlan();
+  const message = document.getElementById('saved');
 
   if (plan.status !== 'active') {
-    document.getElementById('saved').textContent = 'Tento plán je uzamčený nebo archivovaný.';
+    message.textContent = 'Tento plán je uzamčený nebo archivovaný.';
     return;
+  }
+
+  for (const ex of activeExercises()) {
+    const value = document.getElementById('ex_' + ex.key).value.trim();
+
+    if (!value) continue;
+
+    if (isPlank(ex) && !/^[0-9]{1,2}:[0-5][0-9]$/.test(value)) {
+      message.textContent = `U cvičení ${ex.name} zadej čas ve formátu mm:ss, např. 02:30.`;
+      return;
+    }
+
+    if (!isPlank(ex) && !/^\d+$/.test(value)) {
+      message.textContent = `U cvičení ${ex.name} zadej celé číslo.`;
+      return;
+    }
   }
 
   const entry = {
@@ -125,8 +139,6 @@ async function doSave() {
 
   await saveEntry(entry);
 
-  document.getElementById('saved').textContent =
-    'Zápis byl uložen. Tento den už se hráči znovu nenabídne.';
-
+  message.textContent = 'Zápis byl uložen. Tento den už se hráči znovu nenabídne.';
   setTimeout(() => renderEntry(), 1000);
 }
