@@ -3,8 +3,8 @@
 // 2) Najdi objekt firebaseConfig.
 // 3) Nahraď hodnoty níže svými údaji z Firebase.
 
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAqqYrnxMeTN8YvAC-60Y6DdAammlIYhqg',
