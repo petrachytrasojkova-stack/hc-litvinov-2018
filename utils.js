@@ -1,0 +1,8 @@
+export const DEFAULT_PLANS=[{id:'leto_2026',name:'Léto 2026',note:'Červenec + srpen 2026',start:'2026-07-01',end:'2026-08-31',status:'active',active:true}];
+export const DEFAULT_EXERCISES=[{key:'kliky_s',name:'Kliky široké',target:'3×10',unit:'opakování',plans:['leto_2026']},{key:'kliky_u',name:'Kliky úzké',target:'3×10',unit:'opakování',plans:['leto_2026']},{key:'plank',name:'Plank',target:'',unit:'čas',plans:['leto_2026']},{key:'pidalka',name:'Píďalka',target:'5×',unit:'opakování',plans:['leto_2026']},{key:'metcalfy',name:'Metcalfy',target:'3×10',unit:'opakování',plans:['leto_2026']},{key:'skoky',name:'Skoky',target:'3×10',unit:'opakování',plans:['leto_2026']}];
+export function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+export function normPhone(raw){let s=String(raw||'').replace(/\s+/g,''); if(/^\d{9}$/.test(s))return '+420'+s; if(/^00420\d{9}$/.test(s))return '+420'+s.slice(5); if(/^\+420\d{9}$/.test(s))return s; return null}
+export function fullName(f,l){return (String(l||'').trim()+' '+String(f||'').trim()).replace(/\s+/g,' ').trim()}
+export function slug(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')+'_'+Math.random().toString(36).slice(2,7)}
+export function formatDate(iso){if(!iso)return '';let d=new Date(iso+'T00:00:00');return d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'})}
+export function dateList(plan){let a=[],d=new Date(plan.start+'T00:00:00'),end=new Date(plan.end+'T00:00:00'); if(isNaN(d)||isNaN(end)||d>end)return []; while(d<=end){a.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1)} return a}

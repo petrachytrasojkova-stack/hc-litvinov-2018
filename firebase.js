@@ -1,8 +1,3 @@
-// Firebase konfigurace
-// 1) Ve Firebase Console otevři Project settings → General → Your apps.
-// 2) Najdi objekt firebaseConfig.
-// 3) Nahraď hodnoty níže svými údaji z Firebase.
-
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 

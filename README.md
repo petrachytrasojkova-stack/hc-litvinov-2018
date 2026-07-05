@@ -1,27 +1,27 @@
-# Tréninky HC Litvínov
+# HC Litvínov 2018 – domácí cvičení
 
-Produkční základ aplikace pro správu hráčů, tréninků, docházky a SMS.
+Verze 2.0 podle demo aplikace.
 
-## Co je hotové
+## Soubory
+- index.html
+- main.css
+- main.js
+- firebase.js
+- app.js
+- auth.js
+- entry.js
+- overview.js
+- admin.js
+- store.js
+- utils.js
 
-- základní struktura moderní webové aplikace přes Vite,
-- modul Hráči,
-- modul Tréninky,
-- připravený modul Docházka,
-- připravený modul SMS,
-- připravené napojení na Firebase Firestore.
+## První správce
+- jméno: admin
+- heslo: hclitvinov
 
-## Po nahrání do GitHubu
-
-1. Otevři soubor `src/firebase.js`.
-2. Nahraď hodnoty `DOPLNIT` konfigurací z Firebase Console.
-3. V terminálu spusť:
-
-```bash
-npm install
-npm run dev
-```
-
-## Důležité
-
-GoSMS API klíč se nesmí ukládat do veřejného GitHub repozitáře ani přímo do JavaScriptu v prohlížeči. SMS modul bude později napojen přes bezpečnou serverovou část.
+## Firebase kolekce
+- players
+- entries
+- plans
+- exercises
+- settings/admin
