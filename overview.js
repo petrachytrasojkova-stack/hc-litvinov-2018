@@ -1,10 +1,10 @@
 import { state } from './app.js';
 import { activePlan, activeExercises, show } from './auth.js';
 import { getEntries } from './store.js';
-import { dateList, esc } from './utils.js';
+import { dateList, esc, formatDate } from './utils.js';
 
 function entryKey(uid, date, planId) {
-  return uid + '__' + planId + '__' + date;
+  return `${uid}__${planId}__${date}`;
 }
 
 function completion(entry, exercises) {
@@ -19,6 +19,16 @@ function completion(entry, exercises) {
   if ((entry.other || '').trim()) filled += 0.5;
 
   return Math.min(1, filled / (exercises.length || 1));
+}
+
+function lastEntryDate(entries, uid, planId) {
+  const dates = entries
+    .filter(e => e.uid === uid && e.plan === planId)
+    .map(e => e.date)
+    .filter(Boolean)
+    .sort();
+
+  return dates.length ? dates[dates.length - 1] : null;
 }
 
 export async function renderOverview() {
@@ -41,51 +51,85 @@ export async function renderOverview() {
   let html = `
     <div class="row" style="justify-content:space-between">
       <div>
-        <h2>Přehled</h2>
-        <div class="note">${state.currentAdmin ? 'Správce vidí všechny hráče.' : 'Vidíš pouze svoje záznamy.'}</div>
+        <h2>${state.currentAdmin ? 'Přehled hráčů' : 'Můj přehled'}</h2>
+        <div class="note">${esc(plan.name || '')}</div>
       </div>
       <button class="secondary" id="overviewBack">Zpět</button>
     </div>
 
-    <p>
-      <span class="pill">zelená = většinově</span>
-      <span class="pill">žlutá = částečně</span>
-      <span class="pill">červená = bez zápisu</span>
-    </p>
+    <div class="grid">
+      ${users.map(user => {
+        let sum = 0;
+        let doneDays = 0;
 
-    <div class="scroll">
-      <table>
-        <tr>
-          <th class="left">Hráč</th>
-          ${dates.map(iso => {
-            const d = new Date(iso + 'T00:00:00');
-            return `<th>${d.getDate()}.${d.getMonth() + 1}.</th>`;
-          }).join('')}
-          <th>%</th>
-        </tr>
-  `;
+        dates.forEach(date => {
+          const c = completion(map[entryKey(user.id, date, plan.id)], exercises);
+          sum += c;
+          if (c > 0) doneDays++;
+        });
 
-  users.forEach(user => {
-    let sum = 0;
+        const percent = Math.round(sum / (dates.length || 1) * 100);
+        const last = lastEntryDate(entries, user.id, plan.id);
 
-    html += `<tr><td class="left">${esc(user.name || '')}</td>`;
-
-    dates.forEach(iso => {
-      const c = completion(map[entryKey(user.id, iso, plan.id)], exercises);
-      sum += c;
-
-      const cls = c > 0.7 ? 'ok' : c > 0 ? 'mid' : 'bad';
-      html += `<td class="${cls}">${c ? Math.round(c * 100) : ''}</td>`;
-    });
-
-    html += `<td>${Math.round(sum / (dates.length || 1) * 100)} %</td></tr>`;
-  });
-
-  html += `
-      </table>
+        return `
+          <div class="card" style="background:#f9fafb">
+            <h3 style="margin-top:0">🏒 ${esc(user.name || '')}</h3>
+            <p><b>${percent} %</b> splněno</p>
+            <p class="muted">${doneDays} / ${dates.length} dní</p>
+            <p class="muted">Poslední zápis: ${last ? formatDate(last) : 'zatím žádný'}</p>
+            <button class="secondary" onclick="window.showPlayerOverview('${user.id}')">Detail</button>
+          </div>
+        `;
+      }).join('')}
     </div>
+
+    <div id="overviewDetail"></div>
   `;
 
   document.getElementById('overview').innerHTML = html;
   document.getElementById('overviewBack').onclick = () => show(state.currentAdmin ? 'settings' : 'entry');
+
+  window.showPlayerOverview = (uid) => {
+    renderPlayerDetail(uid, entries, map, dates, plan, exercises);
+  };
+}
+
+function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
+  const user = state.players.find(p => p.id === uid) || state.currentUser;
+
+  let html = `
+    <div class="card" style="margin-top:18px">
+      <h3>Detail – ${esc(user.name || '')}</h3>
+  `;
+
+  dates.forEach(date => {
+    const entry = map[entryKey(uid, date, plan.id)];
+
+    html += `
+      <div class="exercise" style="margin-bottom:10px">
+        <h4 style="margin:0 0 8px">${entry ? '✅' : '❌'} ${formatDate(date)}</h4>
+    `;
+
+    if (entry) {
+      exercises.forEach(ex => {
+        html += `
+          <div>
+            <b>${esc(ex.name || '')}</b>: ${esc(entry[ex.key] || '—')}
+          </div>
+        `;
+      });
+
+      if (entry.other) {
+        html += `<p><b>Jiná aktivita:</b><br>${esc(entry.other)}</p>`;
+      }
+    } else {
+      html += `<p class="muted">Bez zápisu.</p>`;
+    }
+
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+
+  document.getElementById('overviewDetail').innerHTML = html;
 }
