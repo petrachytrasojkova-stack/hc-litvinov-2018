@@ -79,7 +79,7 @@ export async function renderOverview() {
             <p><b>${percent} %</b> splněno</p>
             <p class="muted">${doneDays} / ${dates.length} dní</p>
             <p class="muted">Poslední zápis: ${last ? formatDate(last) : 'zatím žádný'}</p>
-            <button class="secondary" onclick="window.showPlayerOverview('${user.id}')">Detail</button>
+            <button class="secondary detail-btn" data-uid="${esc(user.id)}">Detail</button>
           </div>
         `;
       }).join('')}
@@ -88,12 +88,16 @@ export async function renderOverview() {
     <div id="overviewDetail"></div>
   `;
 
-  document.getElementById('overviewBack').onclick = () => show(state.currentAdmin ? 'settings' : 'entry');
+  document.getElementById('overviewBack').addEventListener('click', () => {
+    show(state.currentAdmin ? 'settings' : 'entry');
+  });
 
-  window.showPlayerOverview = (uid) => {
-    document.getElementById('editBox').innerHTML = '';
-    renderPlayerDetail(uid, entries, map, dates, plan, exercises);
-  };
+  document.querySelectorAll('.detail-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      document.getElementById('editBox').innerHTML = '';
+      renderPlayerDetail(button.dataset.uid, entries, map, dates, plan, exercises);
+    });
+  });
 }
 
 function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
@@ -124,8 +128,8 @@ function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
       if (state.currentAdmin) {
         html += `
           <p>
-            <button class="secondary" onclick="window.editEntry('${entry.id}')">✏️ Upravit</button>
-            <button class="danger" onclick="window.removeEntry('${entry.id}')">🗑️ Smazat</button>
+            <button class="secondary edit-entry-btn" data-entry-id="${esc(entry.id)}">✏️ Upravit</button>
+            <button class="danger delete-entry-btn" data-entry-id="${esc(entry.id)}">🗑️ Smazat</button>
           </p>
         `;
       }
@@ -140,16 +144,20 @@ function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
 
   document.getElementById('overviewDetail').innerHTML = html;
 
-  window.editEntry = (entryId) => {
-    const entry = entries.find(e => e.id === entryId);
-    renderEditForm(entry, exercises);
-  };
+  document.querySelectorAll('.edit-entry-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const entry = entries.find(e => e.id === button.dataset.entryId);
+      renderEditForm(entry, exercises);
+    });
+  });
 
-  window.removeEntry = async (entryId) => {
-    if (!confirm('Opravdu smazat tento zápis? Hráči se potom tento den znovu nabídne k zápisu.')) return;
-    await deleteEntry(entryId);
-    await renderOverview();
-  };
+  document.querySelectorAll('.delete-entry-btn').forEach(button => {
+    button.addEventListener('click', async () => {
+      if (!confirm('Opravdu smazat tento zápis? Hráči se potom tento den znovu nabídne k zápisu.')) return;
+      await deleteEntry(button.dataset.entryId);
+      await renderOverview();
+    });
+  });
 }
 
 function renderEditForm(entry, exercises) {
@@ -184,11 +192,11 @@ function renderEditForm(entry, exercises) {
     </div>
   `;
 
-  document.getElementById('cancelEditBtn').onclick = () => {
+  document.getElementById('cancelEditBtn').addEventListener('click', () => {
     document.getElementById('editBox').innerHTML = '';
-  };
+  });
 
-  document.getElementById('saveEditBtn').onclick = async () => {
+  document.getElementById('saveEditBtn').addEventListener('click', async () => {
     const msg = document.getElementById('editMsg');
 
     for (const ex of exercises) {
@@ -217,7 +225,8 @@ function renderEditForm(entry, exercises) {
     });
 
     await saveEntry(updated);
+
     msg.textContent = 'Změny byly uloženy.';
     setTimeout(() => renderOverview(), 800);
-  };
+  });
 }
