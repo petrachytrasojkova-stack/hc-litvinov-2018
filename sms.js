@@ -1,8 +1,8 @@
-export function renderSms(container) {
+export function renderSettings(container) {
   container.innerHTML = `
     <section class="card">
-      <h2>SMS</h2>
-      <p>Modul pro GoSMS API připravíme později.</p>
+      <h2>Nastavení</h2>
+      <p>Nastavení aplikace připravíme později.</p>
     </section>
   `;
 }
