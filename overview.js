@@ -7,17 +7,17 @@ function entryKey(uid, date, planId) {
   return `${uid}__${planId}__${date}`;
 }
 
+function isPlank(ex) {
+  return (ex.name || '').toLowerCase().includes('plank');
+}
+
 function completion(entry, exercises) {
   if (!entry) return 0;
-
   let filled = 0;
-
   exercises.forEach(ex => {
     if ((entry[ex.key] || '').trim()) filled++;
   });
-
   if ((entry.other || '').trim()) filled += 0.5;
-
   return Math.min(1, filled / (exercises.length || 1));
 }
 
@@ -48,7 +48,7 @@ export async function renderOverview() {
     map[entryKey(entry.uid, entry.date, entry.plan)] = entry;
   });
 
-  let html = `
+  document.getElementById('overview').innerHTML = `
     <div class="row" style="justify-content:space-between">
       <div>
         <h2>${state.currentAdmin ? 'Přehled hráčů' : 'Můj přehled'}</h2>
@@ -56,6 +56,8 @@ export async function renderOverview() {
       </div>
       <button class="secondary" id="overviewBack">Zpět</button>
     </div>
+
+    <div id="editBox"></div>
 
     <div class="grid">
       ${users.map(user => {
@@ -86,10 +88,10 @@ export async function renderOverview() {
     <div id="overviewDetail"></div>
   `;
 
-  document.getElementById('overview').innerHTML = html;
   document.getElementById('overviewBack').onclick = () => show(state.currentAdmin ? 'settings' : 'entry');
 
   window.showPlayerOverview = (uid) => {
+    document.getElementById('editBox').innerHTML = '';
     renderPlayerDetail(uid, entries, map, dates, plan, exercises);
   };
 }
@@ -112,11 +114,7 @@ function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
 
     if (entry) {
       exercises.forEach(ex => {
-        html += `
-          <div>
-            <b>${esc(ex.name || '')}</b>: ${esc(entry[ex.key] || '—')}
-          </div>
-        `;
+        html += `<div><b>${esc(ex.name || '')}</b>: ${esc(entry[ex.key] || '—')}</div>`;
       });
 
       if (entry.other) {
@@ -149,7 +147,6 @@ function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
 
   window.removeEntry = async (entryId) => {
     if (!confirm('Opravdu smazat tento zápis? Hráči se potom tento den znovu nabídne k zápisu.')) return;
-
     await deleteEntry(entryId);
     await renderOverview();
   };
@@ -158,38 +155,58 @@ function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
 function renderEditForm(entry, exercises) {
   if (!entry) return;
 
-  let html = `
+  document.getElementById('editBox').innerHTML = `
     <div class="card" style="margin-top:18px;background:#f9fafb">
       <h3>✏️ Upravit zápis</h3>
       <p class="muted">${esc(entry.player || '')} · ${formatDate(entry.date)}</p>
-  `;
 
-  exercises.forEach(ex => {
-    html += `
-      <label>${esc(ex.name || '')}</label>
-      <input
-        id="edit_${esc(ex.key)}"
-        value="${esc(entry[ex.key] || '')}"
-        style="width:100%"
-      >
-    `;
-  });
+      ${exercises.map(ex => `
+        <label>${esc(ex.name || '')}</label>
+        <input
+          id="edit_${esc(ex.key)}"
+          value="${esc(entry[ex.key] || '')}"
+          style="width:100%"
+          ${isPlank(ex)
+            ? 'inputmode="numeric" placeholder="např. 02:30" pattern="^[0-9]{1,2}:[0-5][0-9]$"'
+            : 'type="number" min="0" step="1" placeholder="celé číslo"'}
+        >
+      `).join('')}
 
-  html += `
       <label>Jiná aktivita</label>
       <textarea id="edit_other" rows="3" style="width:100%">${esc(entry.other || '')}</textarea>
 
       <p>
         <button id="saveEditBtn">💾 Uložit změny</button>
+        <button class="secondary" id="cancelEditBtn">Zrušit</button>
       </p>
 
       <div id="editMsg" class="success"></div>
     </div>
   `;
 
-  document.getElementById('overviewDetail').insertAdjacentHTML('beforeend', html);
+  document.getElementById('cancelEditBtn').onclick = () => {
+    document.getElementById('editBox').innerHTML = '';
+  };
 
   document.getElementById('saveEditBtn').onclick = async () => {
+    const msg = document.getElementById('editMsg');
+
+    for (const ex of exercises) {
+      const value = document.getElementById('edit_' + ex.key).value.trim();
+
+      if (!value) continue;
+
+      if (isPlank(ex) && !/^[0-9]{1,2}:[0-5][0-9]$/.test(value)) {
+        msg.textContent = `U cvičení ${ex.name} zadej čas ve formátu mm:ss, např. 02:30.`;
+        return;
+      }
+
+      if (!isPlank(ex) && !/^\d+$/.test(value)) {
+        msg.textContent = `U cvičení ${ex.name} zadej celé číslo.`;
+        return;
+      }
+    }
+
     const updated = {
       ...entry,
       other: document.getElementById('edit_other').value.trim()
@@ -200,8 +217,7 @@ function renderEditForm(entry, exercises) {
     });
 
     await saveEntry(updated);
-
-    document.getElementById('editMsg').textContent = 'Změny byly uloženy.';
+    msg.textContent = 'Změny byly uloženy.';
     setTimeout(() => renderOverview(), 800);
   };
 }
