@@ -1,67 +1,12 @@
 <!doctype html>
 <html lang="cs">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tréninky HC Litvínov</title>
-  <link rel="stylesheet" href="styles/main.css" />
-</head>
-<body>
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">HC Litvínov 2018</p>
-      <h1>Tréninky a docházka</h1>
-    </div>
-    <span class="badge">Produkční základ</span>
-  </header>
-
-  <main class="layout">
-    <section class="card">
-      <h2>Přidat hráče</h2>
-      <form id="playerForm" class="form-grid">
-        <label>Jméno<input name="firstName" required autocomplete="given-name" /></label>
-        <label>Příjmení<input name="lastName" required autocomplete="family-name" /></label>
-        <label>Ročník<input name="birthYear" inputmode="numeric" placeholder="2018" /></label>
-        <label>Tým<input name="team" value="2018" /></label>
-        <label>Jméno rodiče<input name="parentName" autocomplete="name" /></label>
-        <label>Telefon rodiče<input name="parentPhone" autocomplete="tel" placeholder="+420..." /></label>
-        <label>E-mail rodiče<input name="parentEmail" type="email" autocomplete="email" /></label>
-        <button type="submit">Uložit hráče</button>
-      </form>
-    </section>
-
-    <section class="card">
-      <h2>Přidat trénink</h2>
-      <form id="trainingForm" class="form-grid">
-        <label>Název<input name="title" required placeholder="Trénink" /></label>
-        <label>Datum<input name="date" type="date" required /></label>
-        <label>Čas<input name="time" type="time" required /></label>
-        <label>Místo<input name="place" placeholder="Zimní stadion Litvínov" /></label>
-        <label>Tým<input name="team" value="2018" /></label>
-        <label class="full">Poznámka<textarea name="note" rows="3"></textarea></label>
-        <button type="submit">Uložit trénink</button>
-      </form>
-    </section>
-
-    <section class="card wide">
-      <div class="section-head">
-        <h2>Hráči</h2>
-        <button id="reloadPlayers" type="button" class="secondary">Načíst znovu</button>
-      </div>
-      <div id="playersList" class="list empty">Zatím nejsou načtení žádní hráči.</div>
-    </section>
-
-    <section class="card wide">
-      <div class="section-head">
-        <h2>Tréninky</h2>
-        <button id="reloadTrainings" type="button" class="secondary">Načíst znovu</button>
-      </div>
-      <div id="trainingsList" class="list empty">Zatím nejsou načtené žádné tréninky.</div>
-    </section>
-  </main>
-
-  <div id="toast" class="toast" hidden></div>
-
-  <script type="module" src="src/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tréninky HC Litvínov</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

@@ -1,77 +1,47 @@
-import { createPlayer, loadPlayers, renderPlayers } from './players.js';
-import { createTraining, loadTrainings, renderTrainings } from './trainings.js';
+import { renderPlayersSection } from './players.js';
+import { renderTrainingsSection } from './trainings.js';
+import { renderAttendanceSection } from './attendance.js';
+import { renderSmsSection } from './sms.js';
 
-const playerForm = document.querySelector('#playerForm');
-const trainingForm = document.querySelector('#trainingForm');
-const playersList = document.querySelector('#playersList');
-const trainingsList = document.querySelector('#trainingsList');
-const reloadPlayers = document.querySelector('#reloadPlayers');
-const reloadTrainings = document.querySelector('#reloadTrainings');
-const toast = document.querySelector('#toast');
+export function renderApp() {
+  const app = document.querySelector('#app');
 
-playerForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  try {
-    const formData = Object.fromEntries(new FormData(playerForm));
-    await createPlayer(formData);
-    playerForm.reset();
-    playerForm.elements.team.value = '2018';
-    await refreshPlayers();
-    showToast('Hráč uložen.');
-  } catch (error) {
-    showToast(error.message, true);
-  }
-});
+  app.innerHTML = `
+    <main class="layout">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">HC Litvínov 2018</p>
+          <h1>Tréninky a docházka</h1>
+          <p class="subtitle">Produkční základ aplikace pro správu hráčů, tréninků, docházky a SMS.</p>
+        </div>
+      </header>
 
-trainingForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  try {
-    const formData = Object.fromEntries(new FormData(trainingForm));
-    await createTraining(formData);
-    trainingForm.reset();
-    trainingForm.elements.title.value = 'Trénink';
-    trainingForm.elements.team.value = '2018';
-    await refreshTrainings();
-    showToast('Trénink uložen.');
-  } catch (error) {
-    showToast(error.message, true);
-  }
-});
+      <nav class="tabs" aria-label="Hlavní moduly">
+        <button class="tab is-active" data-tab="players">Hráči</button>
+        <button class="tab" data-tab="trainings">Tréninky</button>
+        <button class="tab" data-tab="attendance">Docházka</button>
+        <button class="tab" data-tab="sms">SMS</button>
+      </nav>
 
-reloadPlayers.addEventListener('click', refreshPlayers);
-reloadTrainings.addEventListener('click', refreshTrainings);
+      <section id="content" class="card"></section>
+    </main>
+  `;
 
-async function refreshPlayers() {
-  try {
-    playersList.textContent = 'Načítám hráče...';
-    const players = await loadPlayers();
-    renderPlayers(players, playersList);
-  } catch (error) {
-    playersList.className = 'list empty error';
-    playersList.textContent = `Hráče se nepodařilo načíst: ${error.message}`;
-  }
+  const content = document.querySelector('#content');
+  const tabs = document.querySelectorAll('.tab');
+
+  const renderTab = (tabName) => {
+    tabs.forEach((tab) => tab.classList.toggle('is-active', tab.dataset.tab === tabName));
+
+    if (tabName === 'players') renderPlayersSection(content);
+    if (tabName === 'trainings') renderTrainingsSection(content);
+    if (tabName === 'attendance') renderAttendanceSection(content);
+    if (tabName === 'sms') renderSmsSection(content);
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => renderTab(tab.dataset.tab));
+  });
+
+  renderTab('players');
 }
-
-async function refreshTrainings() {
-  try {
-    trainingsList.textContent = 'Načítám tréninky...';
-    const trainings = await loadTrainings();
-    renderTrainings(trainings, trainingsList);
-  } catch (error) {
-    trainingsList.className = 'list empty error';
-    trainingsList.textContent = `Tréninky se nepodařilo načíst: ${error.message}`;
-  }
-}
-
-function showToast(message, isError = false) {
-  toast.hidden = false;
-  toast.textContent = message;
-  toast.classList.toggle('error', isError);
-  window.clearTimeout(showToast.timeoutId);
-  showToast.timeoutId = window.setTimeout(() => {
-    toast.hidden = true;
-  }, 3500);
-}
-
-refreshPlayers();
-refreshTrainings();

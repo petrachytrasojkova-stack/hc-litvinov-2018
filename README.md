@@ -1,59 +1,27 @@
-# Tréninky HC Litvínov – produkční základ
+# Tréninky HC Litvínov
 
-Webová aplikace pro správu hráčů, tréninků a později docházky a SMS potvrzení.
+Produkční základ aplikace pro správu hráčů, tréninků, docházky a SMS.
 
-## Struktura
+## Co je hotové
 
-```text
-hc-litvinov-training/
-├─ index.html
-├─ src/
-│  ├─ app.js
-│  ├─ firebase.js
-│  ├─ players.js
-│  ├─ trainings.js
-│  ├─ attendance.js
-│  └─ sms.js
-├─ styles/
-│  └─ main.css
-└─ README.md
+- základní struktura moderní webové aplikace přes Vite,
+- modul Hráči,
+- modul Tréninky,
+- připravený modul Docházka,
+- připravený modul SMS,
+- připravené napojení na Firebase Firestore.
+
+## Po nahrání do GitHubu
+
+1. Otevři soubor `src/firebase.js`.
+2. Nahraď hodnoty `DOPLNIT` konfigurací z Firebase Console.
+3. V terminálu spusť:
+
+```bash
+npm install
+npm run dev
 ```
-
-## První spuštění
-
-1. V `src/firebase.js` doplň konfiguraci z Firebase Console.
-2. Nahraj soubory do GitHub repozitáře.
-3. Zapni GitHub Pages.
-4. Ve Firestore vytvoř kolekce automaticky prvním uložením hráče/tréninku.
-
-## Firestore kolekce
-
-### players
-- firstName
-- lastName
-- birthYear
-- team
-- parentName
-- parentPhone
-- parentEmail
-- active
-- createdAt
-
-### trainings
-- title
-- date
-- time
-- place
-- team
-- note
-- createdAt
-
-### attendance
-- trainingId
-- playerId
-- status: yes / no / unknown
-- confirmedAt
 
 ## Důležité
 
-GoSMS API klíč nesmí být ve veřejném JavaScriptu. SMS se budou řešit přes serverovou část nebo Firebase Cloud Function.
+GoSMS API klíč se nesmí ukládat do veřejného GitHub repozitáře ani přímo do JavaScriptu v prohlížeči. SMS modul bude později napojen přes bezpečnou serverovou část.
