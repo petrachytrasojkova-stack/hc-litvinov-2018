@@ -1,9 +1,9 @@
 import { state } from './app.js';
 import { activePlan, activeExercises, show, logout } from './auth.js';
-import { saveEntry } from './store.js';
+import { saveEntry, getEntriesForUserPlan } from './store.js';
 import { dateList, esc, formatDate } from './utils.js';
 
-export function renderEntry() {
+export async function renderEntry() {
   if (!state.currentUser) {
     show('login');
     return;
@@ -11,7 +11,11 @@ export function renderEntry() {
 
   const plan = activePlan();
   const exercises = activeExercises();
-  const dates = dateList(plan);
+  const allDates = dateList(plan);
+
+  const existingEntries = await getEntriesForUserPlan(state.currentUser.id, plan.id);
+  const usedDates = new Set(existingEntries.map(entry => entry.date));
+  const availableDates = allDates.filter(date => !usedDates.has(date));
 
   document.getElementById('entry').innerHTML = `
     <div class="row" style="justify-content:space-between">
@@ -25,38 +29,47 @@ export function renderEntry() {
       </div>
     </div>
 
-    <div class="card" style="background:#f9fafb">
-      <div class="row">
-        <div>
-          <label>Datum zápisu</label>
-          <select id="dateSelect">
-            ${dates.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('')}
-          </select>
+    ${availableDates.length ? `
+      <div class="card" style="background:#f9fafb">
+        <div class="row">
+          <div>
+            <label>Datum zápisu</label>
+            <select id="dateSelect">
+              ${availableDates.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
-    </div>
 
-    <h3>Předepsaná cvičení</h3>
-    <div id="exerciseGrid" class="grid"></div>
+      <h3>Předepsaná cvičení</h3>
+      <div id="exerciseGrid" class="grid"></div>
 
-    <details class="card" style="background:#f9fafb">
-      <summary><b>➕ Přidat jinou aktivitu</b></summary>
-      <label>Jiná aktivita</label>
-      <textarea id="other" rows="3" style="width:100%" placeholder="Např. běh 20 min, kolo, brusle..."></textarea>
-    </details>
+      <details class="card" style="background:#f9fafb">
+        <summary><b>➕ Přidat jinou aktivitu</b></summary>
+        <label>Jiná aktivita</label>
+        <textarea id="other" rows="3" style="width:100%" placeholder="Např. běh 20 min, kolo, brusle..."></textarea>
+      </details>
 
-    <p>
-      <button id="saveEntryBtn">💾 Uložit zápis</button>
-    </p>
+      <p>
+        <button id="saveEntryBtn">💾 Uložit zápis</button>
+      </p>
 
-    <div id="saved" class="success"></div>
+      <div id="saved" class="success"></div>
+    ` : `
+      <div class="card" style="background:#f9fafb">
+        <h3>Všechny dostupné dny už máš zapsané ✅</h3>
+        <p class="muted">Pokud je potřeba něco opravit, požádej trenéra nebo správce.</p>
+      </div>
+    `}
   `;
 
   document.getElementById('goOverview').onclick = () => show('overview');
   document.getElementById('doLogout').onclick = logout;
-  document.getElementById('saveEntryBtn').onclick = doSave;
 
-  renderExercises(exercises);
+  if (availableDates.length) {
+    document.getElementById('saveEntryBtn').onclick = doSave;
+    renderExercises(exercises);
+  }
 }
 
 function renderExercises(exercises) {
@@ -113,5 +126,7 @@ async function doSave() {
   await saveEntry(entry);
 
   document.getElementById('saved').textContent =
-    'Uloženo: ' + new Date().toLocaleString('cs-CZ');
+    'Zápis byl uložen. Tento den už se hráči znovu nenabídne.';
+
+  setTimeout(() => renderEntry(), 1000);
 }
