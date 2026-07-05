@@ -1,4 +1,3 @@
-import './styles/main.css';
-import { renderApp } from './modules/app.js';
+import { renderApp } from './app.js';
 
 renderApp();
