@@ -15,3 +15,12 @@ export async function getEntries(){ const s=await getDocs(collection(db,'entries
 export async function saveEntry(entry){ const id=`${entry.uid}__${entry.plan}__${entry.date}`; await setDoc(doc(db,'entries',id),{...entry,updatedAt:serverTimestamp()}); }
 export async function getAdminSettings(){ const snap=await getDoc(doc(db,'settings','admin')); if(!snap.exists()) return {password:'hclitvinov',phone:''}; return snap.data(); }
 export async function saveAdminSettings(data){ await setDoc(doc(db,'settings','admin'),data,{merge:true}); }
+export async function resetDefaults() {
+  for (const p of DEFAULT_PLANS) {
+    await setDoc(doc(db, 'plans', p.id), p);
+  }
+
+  for (const e of DEFAULT_EXERCISES) {
+    await setDoc(doc(db, 'exercises', e.key), e);
+  }
+}
