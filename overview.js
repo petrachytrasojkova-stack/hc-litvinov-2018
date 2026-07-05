@@ -1,6 +1,6 @@
 import { state } from './app.js';
 import { activePlan, activeExercises, show } from './auth.js';
-import { getEntries } from './store.js';
+import { getEntries, saveEntry, deleteEntry } from './store.js';
 import { dateList, esc, formatDate } from './utils.js';
 
 function entryKey(uid, date, planId) {
@@ -122,6 +122,15 @@ function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
       if (entry.other) {
         html += `<p><b>Jiná aktivita:</b><br>${esc(entry.other)}</p>`;
       }
+
+      if (state.currentAdmin) {
+        html += `
+          <p>
+            <button class="secondary" onclick="window.editEntry('${entry.id}')">✏️ Upravit</button>
+            <button class="danger" onclick="window.removeEntry('${entry.id}')">🗑️ Smazat</button>
+          </p>
+        `;
+      }
     } else {
       html += `<p class="muted">Bez zápisu.</p>`;
     }
@@ -132,4 +141,67 @@ function renderPlayerDetail(uid, entries, map, dates, plan, exercises) {
   html += `</div>`;
 
   document.getElementById('overviewDetail').innerHTML = html;
+
+  window.editEntry = (entryId) => {
+    const entry = entries.find(e => e.id === entryId);
+    renderEditForm(entry, exercises);
+  };
+
+  window.removeEntry = async (entryId) => {
+    if (!confirm('Opravdu smazat tento zápis? Hráči se potom tento den znovu nabídne k zápisu.')) return;
+
+    await deleteEntry(entryId);
+    await renderOverview();
+  };
+}
+
+function renderEditForm(entry, exercises) {
+  if (!entry) return;
+
+  let html = `
+    <div class="card" style="margin-top:18px;background:#f9fafb">
+      <h3>✏️ Upravit zápis</h3>
+      <p class="muted">${esc(entry.player || '')} · ${formatDate(entry.date)}</p>
+  `;
+
+  exercises.forEach(ex => {
+    html += `
+      <label>${esc(ex.name || '')}</label>
+      <input
+        id="edit_${esc(ex.key)}"
+        value="${esc(entry[ex.key] || '')}"
+        style="width:100%"
+      >
+    `;
+  });
+
+  html += `
+      <label>Jiná aktivita</label>
+      <textarea id="edit_other" rows="3" style="width:100%">${esc(entry.other || '')}</textarea>
+
+      <p>
+        <button id="saveEditBtn">💾 Uložit změny</button>
+      </p>
+
+      <div id="editMsg" class="success"></div>
+    </div>
+  `;
+
+  document.getElementById('overviewDetail').insertAdjacentHTML('beforeend', html);
+
+  document.getElementById('saveEditBtn').onclick = async () => {
+    const updated = {
+      ...entry,
+      other: document.getElementById('edit_other').value.trim()
+    };
+
+    exercises.forEach(ex => {
+      updated[ex.key] = document.getElementById('edit_' + ex.key).value.trim();
+    });
+
+    await saveEntry(updated);
+
+    document.getElementById('editMsg').textContent = 'Změny byly uloženy.';
+    setTimeout(() => renderOverview(), 800);
+  };
 }
