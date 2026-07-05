@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 import { db } from './firebase.js';
 import { DEFAULT_PLANS, DEFAULT_EXERCISES } from './utils.js';
 
