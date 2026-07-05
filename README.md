@@ -1,23 +1,59 @@
-# HC Litvínov – ročník 2018
+# Tréninky HC Litvínov – produkční základ
 
-První ostrý balíček pro GitHub Pages + Firebase Firestore.
+Webová aplikace pro správu hráčů, tréninků a později docházky a SMS potvrzení.
 
-## Nahrání na GitHub
-1. Otevři repozitář `hc-litvinov-2018`.
-2. Klikni na **Add file → Upload files**.
-3. Nahraj `index.html` a `README.md`.
-4. Klikni na **Commit changes**.
-5. V repozitáři otevři **Settings → Pages**.
-6. Source: **Deploy from a branch**.
-7. Branch: **main**, folder **/root**.
-8. Ulož.
+## Struktura
 
-Aplikace bude dostupná na adrese podobné:
-`https://petrachytrasojkova-stack.github.io/hc-litvinov-2018/`
+```text
+hc-litvinov-training/
+├─ index.html
+├─ src/
+│  ├─ app.js
+│  ├─ firebase.js
+│  ├─ players.js
+│  ├─ trainings.js
+│  ├─ attendance.js
+│  └─ sms.js
+├─ styles/
+│  └─ main.css
+└─ README.md
+```
 
-## Firebase
-Aplikace je napojená na projekt `hc-litvinov-2018`.
-Při prvním spuštění si založí výchozí trénink `Léto 2026` a základní cvičení.
+## První spuštění
 
-## GoSMS
-SMS je zatím připravená jako placeholder. Pro skutečné odesílání je potřeba doplnit Firebase Cloud Function, aby Client Secret nebyl v HTML.
+1. V `src/firebase.js` doplň konfiguraci z Firebase Console.
+2. Nahraj soubory do GitHub repozitáře.
+3. Zapni GitHub Pages.
+4. Ve Firestore vytvoř kolekce automaticky prvním uložením hráče/tréninku.
+
+## Firestore kolekce
+
+### players
+- firstName
+- lastName
+- birthYear
+- team
+- parentName
+- parentPhone
+- parentEmail
+- active
+- createdAt
+
+### trainings
+- title
+- date
+- time
+- place
+- team
+- note
+- createdAt
+
+### attendance
+- trainingId
+- playerId
+- status: yes / no / unknown
+- confirmedAt
+
+## Důležité
+
+GoSMS API klíč nesmí být ve veřejném JavaScriptu. SMS se budou řešit přes serverovou část nebo Firebase Cloud Function.
